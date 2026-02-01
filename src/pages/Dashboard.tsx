@@ -14,6 +14,7 @@ import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { QuickCapture } from '@/components/QuickCapture';
 import { ActivityHeatmap } from '@/components/ActivityHeatmap';
+import { SmartInsights } from '@/components/SmartInsights';
 
 export default function Dashboard() {
   const { projects } = useProjects();
@@ -134,6 +135,11 @@ export default function Dashboard() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Smart Insights */}
+      <div className="mt-6">
+        <SmartInsights />
       </div>
 
       {/* Activity Heatmap */}
