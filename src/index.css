@@ -296,6 +296,36 @@
     pointer-events: none;
     z-index: 98;
   }
+
+  /* Glitch transition for graph nodes */
+  @keyframes node-digitize {
+    0% { opacity: 1; transform: scale(1); }
+    20% { opacity: 0.5; transform: scale(0.9) translateX(2px); }
+    40% { opacity: 0.3; transform: scale(0.95) translateX(-2px); }
+    60% { opacity: 0.7; transform: scale(1.05); filter: hue-rotate(20deg); }
+    80% { opacity: 0.9; transform: scale(0.98); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+
+  .node-transition {
+    animation: node-digitize 0.4s ease-out;
+  }
+
+  /* Terminal output streaming effect */
+  @keyframes stream-char {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+
+  .stream-text span {
+    animation: stream-char 0.05s ease-out forwards;
+    opacity: 0;
+  }
+
+  /* Command success/error colors */
+  .cmd-success { color: hsl(var(--terminal-green)); }
+  .cmd-error { color: hsl(var(--destructive)); }
+  .cmd-info { color: hsl(var(--glow-secondary)); }
 }
 
 /* Custom scrollbar */
