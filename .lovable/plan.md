@@ -1,153 +1,191 @@
 
 
-# Mac App Layout Redesign: Fixed Viewport Dashboard
+# Expandable Panels: Click-to-Focus Dashboard
 
-## Problem
+## Overview
 
-The current Dashboard stacks 6 sections vertically, requiring scrolling. This feels like a website, not a native Mac app. Mac apps typically:
-
-- Fill the viewport without scrolling
-- Use panels/columns that resize
-- Show secondary content in overlays, popovers, or collapsible areas
-- Use the sidebar for navigation, not content overflow
+Add a Mac-native interaction pattern where clicking any Dashboard panel expands it to fill the main content area. The sidebar stays visible, and navigation back (via button, Escape key, or breadcrumb) returns to Mission Control.
 
 ---
 
-## Proposed Solution
-
-Redesign the Dashboard to fit everything visible in a fixed viewport using a **panel-based layout** with smart content placement.
-
----
-
-## New Layout Structure
+## Interaction Flow
 
 ```text
-+--------+--------------------------------------------------+
-|        |  HEADER: Mission Control + Date + Status        |
-|        +----------------------+---------------------------+
-|        |                      |                           |
-|  SIDE  |   MAIN PANEL         |   RIGHT PANEL             |
-|  BAR   |                      |                           |
-|        |   - Stats (compact)  |   - Smart Insights        |
-|        |   - Projects Grid    |   - Activity Heatmap      |
-|        |                      |     (compact)             |
-|        |                      |   - Activity Log          |
-|        +----------------------+---------------------------+
-|        |  FOOTER: Quick Capture (collapsed bar)           |
-+--------+--------------------------------------------------+
+Mission Control (default)                    Focused View
++--------+---------------------------+       +--------+---------------------------+
+|        | [Stats] [Stats] [Stats]   |       |        | < Back to Mission Control |
+|  SIDE  +-------------+-------------+  -->  |  SIDE  +---------------------------+
+|  BAR   | Projects    | Insights    |       |  BAR   |                           |
+|        |             +-------------+       |        |   SMART INSIGHTS          |
+|        |             | Heatmap     |       |        |   (Full expanded view)    |
+|        +-------------+-------------+       |        |                           |
+|        | Quick Capture             |       |        |   All insights visible    |
++--------+---------------------------+       +--------+---------------------------+
 ```
 
 ---
 
-## Key Changes
+## Implementation Approach
 
-### 1. Two-Column Main Content
+### Option 1: URL-based Focus (Recommended)
 
-Split the content area into two columns:
-- **Left (60%):** Stats + Active Projects
-- **Right (40%):** Insights + Heatmap + Activity Log
+Use URL query params to track focused panel:
+- `/` - Mission Control (all panels)
+- `/?focus=insights` - Smart Insights expanded
+- `/?focus=heatmap` - Activity Heatmap expanded
+- `/?focus=activity` - Activity Log expanded
+- `/?focus=projects` - Projects grid expanded
 
-Both columns use `flex-1` and fill the available height without overflow.
+Benefits:
+- Browser back button works naturally
+- Shareable/bookmarkable focused views
+- Clean separation of concerns
 
-### 2. Compact Activity Heatmap
+### Option 2: Local State
 
-Currently ~280px tall. Reduce to ~140px:
-- Shrink cell height from 24px to 16px
-- Move legend/stats into a single row
-- Optional: Collapse to just "System Pulse: Active" bar, expand on click
+Use React state to track focus. Simpler but loses browser navigation.
 
-### 3. Quick Capture as Footer Bar
-
-Instead of a large panel at the bottom:
-- Show a thin bar: `[ + Quick Note ] [ + Bookmark ] [ + Task ]`
-- Clicking opens a **popover** or **modal** above the bar
-- When collapsed, takes only ~48px
-
-### 4. Smart Insights as Scrollable Panel (Within Fixed Height)
-
-If there are many insights:
-- Limit the panel to 2-3 visible insights
-- Add internal scroll for more
-- The page itself doesn't scroll - just this one panel
-
-### 5. Activity Log Condensed
-
-- Show 5 items instead of 8
-- Smaller text, tighter spacing
-- "View All" opens a full activity page or modal
+Recommendation: **Option 1 (URL-based)** for Mac-like feel with browser back button support.
 
 ---
 
-## Implementation Details
+## Technical Implementation
 
-### AppLayout Changes
+### Dashboard State Management
 
-```tsx
-// Remove overflow-auto from main
-<main className="flex-1 flex flex-col overflow-hidden">
-  {/* Content fills viewport without scrolling */}
-</main>
-```
+```typescript
+// In Dashboard.tsx
+import { useSearchParams } from 'react-router-dom';
 
-### Dashboard Layout
-
-```tsx
-<div className="h-full flex flex-col p-6">
-  {/* Header - fixed height */}
-  <header className="flex-shrink-0 mb-4">...</header>
+export default function Dashboard() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const focusedPanel = searchParams.get('focus'); // null, 'insights', 'heatmap', 'activity', 'projects'
   
-  {/* Main content - fills remaining space */}
-  <div className="flex-1 flex gap-6 overflow-hidden">
-    {/* Left column */}
-    <div className="flex-[6] flex flex-col gap-4 overflow-hidden">
-      <div className="grid grid-cols-4 gap-3">Stats...</div>
-      <div className="flex-1 overflow-hidden">Projects Grid</div>
+  const expandPanel = (panel: string) => {
+    setSearchParams({ focus: panel });
+  };
+  
+  const collapsePanels = () => {
+    setSearchParams({});
+  };
+  
+  // If a panel is focused, render only that panel in full view
+  if (focusedPanel) {
+    return <FocusedPanelView panel={focusedPanel} onBack={collapsePanels} />;
+  }
+  
+  // Otherwise render Mission Control grid
+  return <MissionControlView onExpand={expandPanel} />;
+}
+```
+
+### Focused Panel View Component
+
+```typescript
+function FocusedPanelView({ 
+  panel, 
+  onBack 
+}: { 
+  panel: string; 
+  onBack: () => void 
+}) {
+  // Handle Escape key to go back
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onBack();
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [onBack]);
+
+  return (
+    <div className="h-full flex flex-col p-6">
+      {/* Back header */}
+      <header className="flex-shrink-0 mb-4">
+        <button 
+          onClick={onBack}
+          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          <span className="font-mono">Mission Control</span>
+        </button>
+        <h1 className="text-2xl font-bold font-display mt-2">
+          {getPanelTitle(panel)}
+        </h1>
+      </header>
+
+      {/* Full expanded panel content */}
+      <div className="flex-1 overflow-hidden">
+        {panel === 'insights' && <SmartInsights compact={false} className="h-full" />}
+        {panel === 'heatmap' && <ActivityHeatmap compact={false} />}
+        {panel === 'activity' && <FullActivityLog />}
+        {panel === 'projects' && <FullProjectsGrid />}
+      </div>
     </div>
-    
-    {/* Right column */}
-    <div className="flex-[4] flex flex-col gap-4 overflow-hidden">
-      <SmartInsights className="flex-shrink-0 max-h-[200px]" />
-      <ActivityHeatmap compact />
-      <ActivityLog compact className="flex-1" />
-    </div>
+  );
+}
+```
+
+### Making Panels Clickable
+
+Add click handlers to each panel wrapper:
+
+```typescript
+// Smart Insights panel
+<div 
+  onClick={() => onExpand('insights')}
+  className="cursor-pointer hover:border-primary/50 transition-colors"
+>
+  <SmartInsights compact />
+</div>
+
+// Activity Heatmap
+<div 
+  onClick={() => onExpand('heatmap')}
+  className="cursor-pointer hover:border-primary/50 transition-colors"
+>
+  <ActivityHeatmap compact />
+</div>
+```
+
+### Visual Affordance
+
+Add hover states to indicate clickability:
+- Border highlight on hover
+- Subtle scale transform (1.005x)
+- "Expand" icon appears in corner on hover
+
+```typescript
+<div className="group relative">
+  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+    <Maximize2 className="h-4 w-4 text-muted-foreground" />
   </div>
-  
-  {/* Footer - Quick Capture bar */}
-  <QuickCaptureBar className="flex-shrink-0 mt-4" />
+  {/* Panel content */}
 </div>
 ```
 
-### Quick Capture Redesign
+---
 
-Convert from full panel to toolbar with popovers:
+## Full-Screen Panel Content
 
-```tsx
-<div className="h-12 bg-card border border-border flex items-center gap-2 px-4">
-  <span className="text-xs font-mono text-muted-foreground">QUICK:</span>
-  <PopoverTrigger>
-    <Button size="sm">+ Note</Button>
-  </PopoverTrigger>
-  <PopoverTrigger>
-    <Button size="sm">+ Bookmark</Button>
-  </PopoverTrigger>
-  <PopoverTrigger>
-    <Button size="sm">+ Task</Button>
-  </PopoverTrigger>
-</div>
-```
+When expanded, panels show more content:
 
-### Activity Heatmap Compact Mode
+| Panel | Compact (Dashboard) | Expanded (Full) |
+|-------|---------------------|-----------------|
+| Smart Insights | 3 insights, no descriptions | All insights with full descriptions |
+| Activity Heatmap | 7x24 grid, minimal stats | Full grid, detailed stats, time filters |
+| Activity Log | 5 items | All activities with pagination/infinite scroll |
+| Projects | 6 cards in 2x3 grid | All projects in larger grid with more detail |
 
-Add a `compact` prop:
+---
 
-```tsx
-<ActivityHeatmap compact />
-// When compact:
-// - Cell height: 16px instead of 24px
-// - 7 rows still, but tighter
-// - Stats inline with legend
-// - Total height: ~120px instead of ~280px
-```
+## New Components Needed
+
+| Component | Purpose |
+|-----------|---------|
+| `FocusedPanelView` | Wrapper for expanded panel with back navigation |
+| `FullActivityLog` | Expanded activity log with all items |
+| `FullProjectsGrid` | Expanded projects view |
 
 ---
 
@@ -155,34 +193,51 @@ Add a `compact` prop:
 
 | File | Changes |
 |------|---------|
-| `src/components/AppLayout.tsx` | Remove `overflow-auto` from main |
-| `src/pages/Dashboard.tsx` | Two-column flexbox layout, no scroll |
-| `src/components/QuickCapture.tsx` | Convert to toolbar with popovers |
-| `src/components/ActivityHeatmap.tsx` | Add `compact` prop for smaller display |
-| `src/components/SmartInsights.tsx` | Add max-height with internal scroll |
+| `src/pages/Dashboard.tsx` | Add URL-based focus state, conditional rendering |
+| `src/components/SmartInsights.tsx` | Accept `onClick` prop, add hover states |
+| `src/components/ActivityHeatmap.tsx` | Accept `onClick` prop, add hover states |
+| `src/components/ExpandablePanel.tsx` | New wrapper component for clickable panels |
 
 ---
 
-## Visual Result
+## Keyboard Support
 
-After changes, the Dashboard will:
-- Fill the window exactly - no page scroll
-- Show all key information at a glance
-- Use popovers for input forms (Quick Capture)
-- Feel like Xcode, Raycast, or other Mac productivity apps
-- Still look great at different window sizes (flex-based layout)
+- **Click** on panel: Expand to full view
+- **Escape**: Return to Mission Control
+- **Cmd+[** or Browser Back: Return to Mission Control
 
 ---
 
-## Responsive Behavior
+## Animation
 
-For smaller windows:
-- Columns stack if window is narrow
-- Heatmap can collapse further or hide
-- Minimum viable size maintained
+Add smooth transition when expanding/collapsing:
 
-For larger windows:
-- Content expands proportionally
-- Project cards can show more detail
-- More insights visible
+```css
+.panel-expand {
+  animation: panel-zoom 0.2s ease-out;
+}
+
+@keyframes panel-zoom {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+```
+
+---
+
+## Result
+
+After implementation:
+- Click any panel on Dashboard to expand it full-screen (sidebar stays)
+- Press Escape or click "Back to Mission Control" to return
+- Browser back button works naturally
+- Panels show expand icon on hover
+- Smooth animations between states
+- Feels like a native Mac app with focus modes
 
