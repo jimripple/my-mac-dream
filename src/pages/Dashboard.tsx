@@ -1,3 +1,4 @@
+import { useSearchParams } from 'react-router-dom';
 import { useProjects, useTasks, useActivities, useStats } from '@/hooks/useStore';
 import { formatDistanceToNow } from 'date-fns';
 import { 
@@ -15,13 +16,33 @@ import { cn } from '@/lib/utils';
 import { QuickCaptureBar } from '@/components/QuickCaptureBar';
 import { ActivityHeatmap } from '@/components/ActivityHeatmap';
 import { SmartInsights } from '@/components/SmartInsights';
+import { ExpandablePanel } from '@/components/ExpandablePanel';
+import { FocusedPanelView } from '@/components/FocusedPanelView';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
+type PanelType = 'insights' | 'heatmap' | 'activity' | 'projects';
+
 export default function Dashboard() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const focusedPanel = searchParams.get('focus') as PanelType | null;
+  
   const { projects } = useProjects();
   const { tasks } = useTasks();
   const { activities } = useActivities();
   const stats = useStats();
+
+  const expandPanel = (panel: PanelType) => {
+    setSearchParams({ focus: panel });
+  };
+
+  const collapsePanels = () => {
+    setSearchParams({});
+  };
+
+  // If a panel is focused, render only that panel in full view
+  if (focusedPanel) {
+    return <FocusedPanelView panel={focusedPanel} onBack={collapsePanels} />;
+  }
 
   const activeProjects = projects.filter(p => p.status === 'active').slice(0, 6);
   const recentActivities = activities.slice(0, 5);
@@ -81,79 +102,100 @@ export default function Dashboard() {
       <div className="flex-1 flex gap-4 overflow-hidden min-h-0">
         {/* Left column - 60% */}
         <div className="flex-[6] flex flex-col gap-4 overflow-hidden">
-          {/* Active Projects */}
-          <div className="flex-1 bg-card border border-border p-4 relative corner-brackets overflow-hidden flex flex-col">
-            <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-primary" />
-            <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-primary" />
-            
-            <div className="flex items-center justify-between mb-3 flex-shrink-0">
-              <h2 className="text-sm font-bold font-display flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-primary" />
-                <span className="uppercase tracking-wider">Active_Projects</span>
-              </h2>
-              <Link 
-                to="/projects" 
-                className="text-[10px] text-muted-foreground hover:text-primary transition-colors font-mono flex items-center gap-1"
-              >
-                View All <ArrowRight className="h-3 w-3" />
-              </Link>
-            </div>
+          {/* Active Projects - Expandable */}
+          <ExpandablePanel 
+            onClick={() => expandPanel('projects')}
+            className="flex-1"
+          >
+            <div className="h-full bg-card border border-border p-4 relative corner-brackets overflow-hidden flex flex-col">
+              <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-primary" />
+              <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-primary" />
+              
+              <div className="flex items-center justify-between mb-3 flex-shrink-0">
+                <h2 className="text-sm font-bold font-display flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-primary" />
+                  <span className="uppercase tracking-wider">Active_Projects</span>
+                </h2>
+                <Link 
+                  to="/projects" 
+                  className="text-[10px] text-muted-foreground hover:text-primary transition-colors font-mono flex items-center gap-1"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  View All <ArrowRight className="h-3 w-3" />
+                </Link>
+              </div>
 
-            {activeProjects.length === 0 ? (
-              <EmptyState 
-                message="No active projects yet" 
-                action={{ label: "Create Project", path: "/projects/new" }}
-              />
-            ) : (
-              <ScrollArea className="flex-1">
-                <div className="grid grid-cols-2 gap-3 pr-2">
-                  {activeProjects.map((project) => (
-                    <ProjectCard 
-                      key={project.id} 
-                      project={project} 
-                      progress={getProjectProgress(project.id)}
-                    />
-                  ))}
-                </div>
-              </ScrollArea>
-            )}
-          </div>
+              {activeProjects.length === 0 ? (
+                <EmptyState 
+                  message="No active projects yet" 
+                  action={{ label: "Create Project", path: "/projects/new" }}
+                />
+              ) : (
+                <ScrollArea className="flex-1">
+                  <div className="grid grid-cols-2 gap-3 pr-2">
+                    {activeProjects.map((project) => (
+                      <ProjectCard 
+                        key={project.id} 
+                        project={project} 
+                        progress={getProjectProgress(project.id)}
+                      />
+                    ))}
+                  </div>
+                </ScrollArea>
+              )}
+            </div>
+          </ExpandablePanel>
         </div>
 
         {/* Right column - 40% */}
         <div className="flex-[4] flex flex-col gap-4 overflow-hidden">
-          {/* Smart Insights */}
-          <SmartInsights compact className="flex-shrink-0" />
+          {/* Smart Insights - Expandable */}
+          <ExpandablePanel 
+            onClick={() => expandPanel('insights')}
+            className="flex-shrink-0"
+          >
+            <SmartInsights compact />
+          </ExpandablePanel>
           
-          {/* Activity Heatmap */}
-          <ActivityHeatmap compact />
+          {/* Activity Heatmap - Expandable */}
+          <ExpandablePanel 
+            onClick={() => expandPanel('heatmap')}
+            className="flex-shrink-0"
+          >
+            <ActivityHeatmap compact />
+          </ExpandablePanel>
           
-          {/* Activity Log */}
-          <div className="flex-1 bg-card border border-border p-4 relative corner-brackets overflow-hidden flex flex-col min-h-0">
-            <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-primary" />
-            <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-primary" />
-            
-            <div className="flex items-center justify-between mb-3 flex-shrink-0">
-              <h2 className="text-sm font-bold font-display flex items-center gap-2">
-                <Activity className="h-4 w-4 text-primary" />
-                <span className="uppercase tracking-wider">Activity_Log</span>
-              </h2>
-            </div>
+          {/* Activity Log - Expandable */}
+          <ExpandablePanel 
+            onClick={() => expandPanel('activity')}
+            className="flex-1"
+          >
+            <div className="h-full bg-card border border-border p-4 relative corner-brackets overflow-hidden flex flex-col min-h-0">
+              <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-primary" />
+              <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-primary" />
+              
+              <div className="flex items-center justify-between mb-3 flex-shrink-0">
+                <h2 className="text-sm font-bold font-display flex items-center gap-2">
+                  <Activity className="h-4 w-4 text-primary" />
+                  <span className="uppercase tracking-wider">Activity_Log</span>
+                </h2>
+              </div>
 
-            {recentActivities.length === 0 ? (
-              <p className="text-xs text-muted-foreground font-mono text-center py-4">
-                No activity yet
-              </p>
-            ) : (
-              <ScrollArea className="flex-1">
-                <div className="space-y-2 pr-2">
-                  {recentActivities.map((activity) => (
-                    <ActivityItem key={activity.id} activity={activity} />
-                  ))}
-                </div>
-              </ScrollArea>
-            )}
-          </div>
+              {recentActivities.length === 0 ? (
+                <p className="text-xs text-muted-foreground font-mono text-center py-4">
+                  No activity yet
+                </p>
+              ) : (
+                <ScrollArea className="flex-1">
+                  <div className="space-y-2 pr-2">
+                    {recentActivities.map((activity) => (
+                      <ActivityItem key={activity.id} activity={activity} />
+                    ))}
+                  </div>
+                </ScrollArea>
+              )}
+            </div>
+          </ExpandablePanel>
         </div>
       </div>
 
@@ -224,6 +266,7 @@ function ProjectCard({
     <Link 
       to={`/projects/${project.id}`}
       className="block p-3 bg-surface border border-border hover:border-primary/50 transition-all group"
+      onClick={(e) => e.stopPropagation()}
     >
       <div className="flex items-start gap-2">
         <div 
@@ -298,6 +341,7 @@ function EmptyState({
         <Link
           to={action.path}
           className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground font-mono text-xs hover:bg-primary/90 transition-colors"
+          onClick={(e) => e.stopPropagation()}
         >
           <Plus className="h-3 w-3" />
           {action.label}
