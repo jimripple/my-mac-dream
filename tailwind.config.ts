@@ -13,6 +13,10 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        mono: ["JetBrains Mono", "Space Mono", "monospace"],
+        display: ["Space Mono", "JetBrains Mono", "monospace"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -57,6 +61,13 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        // Custom myOS colors
+        glow: "hsl(var(--glow))",
+        "glow-secondary": "hsl(var(--glow-secondary))",
+        "terminal-green": "hsl(var(--terminal-green))",
+        warning: "hsl(var(--warning))",
+        surface: "hsl(var(--surface))",
+        "surface-elevated": "hsl(var(--surface-elevated))",
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -65,25 +76,40 @@ export default {
       },
       keyframes: {
         "accordion-down": {
-          from: {
-            height: "0",
-          },
-          to: {
-            height: "var(--radix-accordion-content-height)",
-          },
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
-          from: {
-            height: "var(--radix-accordion-content-height)",
-          },
-          to: {
-            height: "0",
-          },
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
+        "pulse-glow": {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.5" },
+        },
+        "scan": {
+          "0%": { transform: "translateY(-100%)" },
+          "100%": { transform: "translateY(100%)" },
+        },
+        "flicker": {
+          "0%, 100%": { opacity: "1" },
+          "92%": { opacity: "1" },
+          "93%": { opacity: "0.8" },
+          "94%": { opacity: "1" },
+          "95%": { opacity: "0.9" },
         },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "pulse-glow": "pulse-glow 2s ease-in-out infinite",
+        "scan": "scan 8s linear infinite",
+        "flicker": "flicker 4s linear infinite",
+      },
+      boxShadow: {
+        "glow-sm": "0 0 10px hsl(var(--glow) / 0.3)",
+        "glow-md": "0 0 20px hsl(var(--glow) / 0.3), 0 0 40px hsl(var(--glow) / 0.1)",
+        "glow-lg": "0 0 30px hsl(var(--glow) / 0.4), 0 0 60px hsl(var(--glow) / 0.2)",
       },
     },
   },
