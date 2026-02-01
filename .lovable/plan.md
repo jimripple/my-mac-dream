@@ -1,223 +1,338 @@
 
 
-# myOS Feature Implementation Plan
+# Cyberpunk Enhancement Plan: Activity Heatmap, Neural Link Graph, and Terminal Quick-Actions
 
 ## Overview
 
-This plan adds 5 core features plus smart relationship suggestions to make myOS a genuinely useful personal command center. All features work together to reduce friction and surface meaningful connections.
-
----
-
-## Features Summary
+This plan implements three features from the Gemini suggestions that lean into the cyberpunk terminal aesthetic while adding genuine utility:
 
 | Feature | Purpose |
 |---------|---------|
-| **1. Project Detail View** | See everything connected to a project in one place |
-| **2. Quick Capture** | Add notes/bookmarks/tasks without leaving the dashboard |
-| **3. Universal Search** | Find anything by typing keywords |
-| **4. Markdown Editor** | Rich note editing with formatting toolbar |
-| **5. Data Export/Import** | Backup and restore all your data |
-| **6. Smart Suggestions** | Automatic hints when new items may relate to existing projects |
+| **1. Ghost in the Machine - Activity Heatmap** | Visualize your productivity rhythm as a real-time "system pulse" |
+| **2. Neural Link - Project Contextualizer** | Focus the Graph view on a selected project with glitch transitions |
+| **3. Terminal Quick-Actions** | Natural language commands in the Command Bar with streaming output |
 
 ---
 
-## Feature 1: Project Detail View
+## Feature 1: Ghost in the Machine - Activity Heatmap
 
-**What it does:** When you click on a project, see all its connected notes, bookmarks, and tasks in one unified view with progress visualization.
+### What It Does
 
-**New page:** `/projects/:id`
+A real-time visualization showing your "system load" - when you're most active based on task completions, notes created, and bookmarks added. Instead of a static GitHub-style grid, this shows a vertical waterfall that "pings" with each action.
 
-**Sections:**
-- Project header with name, description, status, deadline, and color
-- Progress gauge (circular) based on task completion
-- Tabbed content area:
-  - **Tasks tab** - All tasks for this project with inline status toggle
-  - **Notes tab** - All notes linked to this project
-  - **Bookmarks tab** - All bookmarks linked to this project
-- Quick-add buttons for each content type
-- Edit/Delete project actions
+### Visual Design
 
----
+```text
+SYSTEM_PULSE
++------------------------------------------+
+|  ▓▓▓▓▓▓▓▓░░░░░░░░▓▓▓▓▓▓░░░░░░░░░░░░░░  | TODAY
+|  ▓▓▓▓░░░░░░░░▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░▓▓░░░░  | -1D
+|  ░░░░░░░░░░░░░░░░▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  | -2D
+|  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░░░░░░░░░  | -3D
+|  ░░░░░░░░▓▓▓▓░░░░░░░░▓▓▓▓░░░░░░░░░░░░  | -4D
+|  ▓▓░░░░░░░░░░░░░░░░░░░░░░░░░░▓▓▓▓▓▓▓▓  | -5D
+|  ░░░░░░▓▓▓▓▓▓▓▓░░░░░░░░░░▓▓▓▓░░░░░░░░  | -6D
++------------------------------------------+
+  AM  06  08  10  12  14  16  18  20  PM
 
-## Feature 2: Quick Capture
+  ACTIVITY DENSITY: ▓▓▓▓░░ HIGH  ░░░░░░ LOW
+  TODAY: 12 actions | PEAK: 2:00 PM | STREAK: 5 days
+```
 
-**What it does:** Add content directly from the dashboard without navigating to separate pages.
+### Technical Implementation
 
-**Implementation:**
-- Expand the existing Quick_Capture section on Dashboard
-- Add inline forms that expand when clicked:
-  - **Quick Note** - Title + content textarea, auto-link to selected project
-  - **Quick Bookmark** - URL input with auto-title detection
-  - **Quick Task** - Title + project selector (already partially exists in Tasks page)
-- Forms collapse after submission with success feedback
+**Data Source:** Uses existing `activities` array from storage (timestamps available)
 
----
+**Processing Logic:**
+1. Group activities by hour-of-day and day-of-week for past 7 days
+2. Calculate density per time slot (0-23 hours)
+3. Normalize to intensity levels (0-4 for visual blocks)
 
-## Feature 3: Universal Search
+**New Component:** `src/components/ActivityHeatmap.tsx`
+- Renders a 7-row (days) x 24-column (hours) grid
+- Each cell colored by activity density (darker = more active)
+- Hover shows exact count and activity breakdown
+- "Ping" animation when new activity is added
+- Stats bar: total today, peak hour, streak days
 
-**What it does:** Find any note, bookmark, task, or project by typing keywords. Works from Command Bar (Cmd+K).
+**Placement:** Dashboard, below the stats grid (replace or augment Activity Log)
 
-**Implementation:**
-- Enhance existing CommandBar to search across all content types
-- Search indexes: project names/descriptions, note titles/content, bookmark titles/URLs/descriptions, task titles
-- Show results grouped by type with item previews
-- Click result to navigate directly to the item
-- Keyboard navigation through results
+### Visual Effects
 
----
-
-## Feature 4: Markdown Editor
-
-**What it does:** Proper note editing with formatting support.
-
-**Implementation:**
-- Create a new NoteEditor component with:
-  - Formatting toolbar (bold, italic, headers, lists, code, links)
-  - Live preview toggle (side-by-side or tabbed)
-  - Keyboard shortcuts (Cmd+B for bold, etc.)
-- Create a Note Detail/Edit page (`/notes/:id`)
-- Add note-to-note linking via `[[note title]]` syntax
-- Parse and render markdown with proper styling
+- Cells glow with primary amber color based on intensity
+- New activities trigger a ripple/ping animation
+- Subtle scan-line overlay for CRT aesthetic
+- Monospace labels with uppercase formatting
 
 ---
 
-## Feature 5: Data Export/Import
+## Feature 2: Neural Link - Project Contextualizer
 
-**What it does:** Download all your data as JSON, restore from backup.
+### What It Does
 
-**Implementation:**
-- Add Settings page (`/settings`) with:
-  - **Export** button - Downloads JSON file with timestamp
-  - **Import** section - File upload with validation and confirmation
-  - Storage stats (item counts, approximate storage used)
-- Format: Single JSON with projects, notes, bookmarks, tasks, activities
+When you click a project (anywhere in the app), the Graph view can focus on that project's connections. Selecting a project shows only its connected notes, bookmarks, and tasks - with a glitch transition effect as nodes "digitize" into the new configuration.
+
+### Current State
+
+The Graph page (`/graph`) shows ALL nodes in a scatter plot. Projects, notes, and bookmarks are positioned radially but there's no filtering or focus capability.
+
+### Implementation Approach
+
+**Option A: Project Selector on Graph Page**
+- Add a dropdown/selector at the top of Graph page
+- Selecting a project filters to show only connected items
+- "Show All" option returns to full view
+
+**Option B: Deep Link from Project Detail**
+- Add "View in Graph" button on ProjectDetail page
+- Navigate to `/graph?focus=projectId`
+- Graph page reads query param and filters
+
+**Recommended:** Implement both - selector on page + deep link from project
+
+### Technical Changes
+
+**Modify:** `src/pages/Graph.tsx`
+
+1. Add state for `focusedProjectId`
+2. Add project selector dropdown
+3. Filter `graphData` when project is focused:
+   - Include the project node
+   - Include notes where `projectIds` contains the project
+   - Include bookmarks where `projectIds` contains the project
+   - Include tasks where `projectId` matches
+4. Recalculate positions for filtered subset
+
+**Glitch Transition Effect:**
+
+New CSS animation in `index.css`:
+```css
+@keyframes node-digitize {
+  0% { opacity: 1; transform: scale(1); }
+  20% { opacity: 0.5; transform: scale(0.9) translateX(2px); }
+  40% { opacity: 0.3; transform: scale(0.95) translateX(-2px); }
+  60% { opacity: 0.7; transform: scale(1.05); filter: hue-rotate(20deg); }
+  80% { opacity: 0.9; transform: scale(0.98); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.node-transition {
+  animation: node-digitize 0.4s ease-out;
+}
+```
+
+When switching focus, add the animation class to the chart container for 400ms.
+
+### UI Elements
+
+- Project dropdown with color indicator for each project
+- "FOCUS: [Project Name]" indicator when filtered
+- "Clear Focus" button to show all
+- Node count: "Showing 8 of 47 nodes"
 
 ---
 
-## Feature 6: Smart Relationship Suggestions
+## Feature 3: Integrated Terminal Quick-Actions
 
-**What it does:** When creating/editing items, the system suggests related projects based on keyword matching.
+### What It Does
 
-**How it works (no AI required):**
-1. Extract keywords from the new item's title/content
-2. Compare against existing project names and descriptions
-3. Score matches based on:
-   - Exact word matches
-   - Partial word matches
-   - Number of overlapping terms
-4. Surface top 3 suggestions with confidence indicators
+The Command Bar (Cmd+K) becomes a true terminal - supporting natural language commands and custom shortcuts that execute actions immediately with streaming text output.
 
-**UI Pattern:**
-- When typing in title/description fields, show a "Related Projects" panel
-- Display suggested projects with match reasoning (e.g., "Contains: api, backend")
-- One-click to add connection
-- Dismiss button to ignore suggestions
+### Command Syntax
 
-**Where it appears:**
-- New Note form
-- New Bookmark form
-- New Project form (suggests related existing projects)
-- Note/Bookmark edit forms
+```text
+/note "Meeting notes from standup"     -> Creates a quick note
+/task "Fix login bug" @project-name    -> Creates task linked to project  
+/bookmark https://example.com          -> Adds bookmark with auto-title
+/log "Finished the API integration"    -> Logs activity entry
+/track "Research cyberpunk UI"         -> Creates note + starts timer (future)
+/status                                -> Shows system stats
+/focus project-name                    -> Opens project in Graph view
+```
+
+### Technical Implementation
+
+**Modify:** `src/components/CommandBar.tsx`
+
+1. Detect when input starts with `/`
+2. Parse command and arguments
+3. Execute appropriate action
+4. Show streaming output in the command list area
+
+**Command Parser:**
+```typescript
+interface ParsedCommand {
+  command: string;        // 'note', 'task', 'bookmark', etc.
+  args: string[];         // Parsed arguments
+  projectRef?: string;    // @project-name reference
+}
+
+function parseCommand(input: string): ParsedCommand | null {
+  if (!input.startsWith('/')) return null;
+  // Parse /command "content" @project format
+  const match = input.match(/^\/(\w+)\s*(?:"([^"]+)")?\s*(?:@([\w-]+))?/);
+  if (!match) return null;
+  return {
+    command: match[1],
+    args: match[2] ? [match[2]] : [],
+    projectRef: match[3]
+  };
+}
+```
+
+**Streaming Output Effect:**
+
+When a command executes, show output character-by-character:
+
+```typescript
+const streamOutput = async (text: string, onChar: (char: string) => void) => {
+  for (const char of text) {
+    onChar(char);
+    await new Promise(r => setTimeout(r, 20 + Math.random() * 30));
+  }
+};
+```
+
+### UI Changes
+
+- Input shows command syntax highlighting (/ in green, args in cyan)
+- Output area below input for streaming results
+- Success: green text with checkmark
+- Error: red text with description
+- Help: `/help` shows available commands
+
+### Command List (Phase 1)
+
+| Command | Action |
+|---------|--------|
+| `/note "title"` | Create note with title (opens editor) |
+| `/task "title" @project` | Create task linked to project |
+| `/bookmark url` | Add bookmark (auto-fetches title) |
+| `/log "message"` | Add activity log entry |
+| `/status` | Show system stats (projects, notes, tasks) |
+| `/focus project` | Focus Graph on project |
+| `/help` | Show command list |
 
 ---
 
 ## Implementation Order
 
 ```text
-Phase 1: Foundation
-  1. Project Detail View - core navigation improvement
-  2. Note Detail/Edit View - enables proper editing
+Phase 1: Activity Heatmap
+  - Create ActivityHeatmap component
+  - Add to Dashboard
+  - Add CSS animations for ping effect
 
-Phase 2: Capture Flow
-  3. Quick Capture - reduces friction for adding content
-  4. Markdown Editor - makes notes actually usable
+Phase 2: Neural Link Graph
+  - Add project selector to Graph page
+  - Implement filtering logic
+  - Add glitch transition CSS
+  - Add deep link from ProjectDetail
 
-Phase 3: Discovery
-  5. Universal Search - find anything instantly
-  6. Smart Suggestions - surface hidden connections
-
-Phase 4: Safety
-  7. Data Export/Import - protect user data
+Phase 3: Terminal Commands
+  - Add command parser to CommandBar
+  - Implement base commands (/note, /task, /bookmark)
+  - Add streaming output effect
+  - Add /status and /help commands
 ```
 
 ---
 
-## New Files to Create
+## New Files
 
 | File | Purpose |
 |------|---------|
-| `src/pages/ProjectDetail.tsx` | Project view with connected items |
-| `src/pages/NoteDetail.tsx` | Note view/edit with markdown |
-| `src/pages/Settings.tsx` | Export/import and app settings |
-| `src/components/QuickCapture.tsx` | Inline capture forms for dashboard |
-| `src/components/MarkdownEditor.tsx` | Formatting toolbar + editor |
-| `src/components/MarkdownPreview.tsx` | Render markdown content |
-| `src/components/RelatedSuggestions.tsx` | Smart project suggestions panel |
-| `src/lib/suggestions.ts` | Keyword extraction and matching logic |
+| `src/components/ActivityHeatmap.tsx` | 7-day activity visualization |
+| `src/lib/activityAnalytics.ts` | Functions to process activity data for heatmap |
 
----
-
-## Files to Modify
+## Modified Files
 
 | File | Changes |
 |------|---------|
-| `src/App.tsx` | Add routes for ProjectDetail, NoteDetail, Settings |
-| `src/pages/Dashboard.tsx` | Replace Quick_Capture with QuickCapture component |
-| `src/components/CommandBar.tsx` | Add full-text search across all items |
-| `src/components/Sidebar.tsx` | Add Settings link |
-| `src/pages/NewNote.tsx` | Add RelatedSuggestions panel |
-| `src/pages/NewBookmark.tsx` | Add RelatedSuggestions panel |
-| `src/pages/NewProject.tsx` | Add RelatedSuggestions panel |
+| `src/pages/Dashboard.tsx` | Add ActivityHeatmap component |
+| `src/pages/Graph.tsx` | Add project focus filtering and glitch transitions |
+| `src/components/CommandBar.tsx` | Add command parsing and streaming output |
+| `src/index.css` | Add glitch animation keyframes |
+| `src/pages/ProjectDetail.tsx` | Add "View in Graph" button |
 
 ---
 
 ## Technical Details
 
-### Keyword Matching Algorithm
+### Activity Analytics
 
-```text
-extractKeywords(text):
-  1. Lowercase and split by whitespace/punctuation
-  2. Remove common stopwords (the, a, is, to, etc.)
-  3. Remove words under 3 characters
-  4. Return unique keyword set
+```typescript
+// src/lib/activityAnalytics.ts
 
-scoreMatch(itemKeywords, projectKeywords):
-  - Count overlapping keywords
-  - Weight by keyword length (longer = more specific)
-  - Normalize by total keywords
-  - Return score 0-100
+interface HeatmapCell {
+  day: number;      // 0-6 (days ago)
+  hour: number;     // 0-23
+  count: number;
+  intensity: number; // 0-4 normalized
+}
 
-suggestProjects(newItem, allProjects):
-  1. Extract keywords from newItem
-  2. For each project, calculate match score
-  3. Filter scores above threshold (e.g., 20)
-  4. Return top 3 sorted by score
+function generateHeatmapData(activities: Activity[]): HeatmapCell[] {
+  const now = new Date();
+  const cells: HeatmapCell[] = [];
+  
+  // Initialize 7x24 grid
+  for (let day = 0; day < 7; day++) {
+    for (let hour = 0; hour < 24; hour++) {
+      cells.push({ day, hour, count: 0, intensity: 0 });
+    }
+  }
+  
+  // Count activities per cell
+  activities.forEach(activity => {
+    const date = new Date(activity.timestamp);
+    const daysAgo = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+    if (daysAgo < 7) {
+      const hour = date.getHours();
+      const cell = cells.find(c => c.day === daysAgo && c.hour === hour);
+      if (cell) cell.count++;
+    }
+  });
+  
+  // Normalize to intensity (0-4)
+  const maxCount = Math.max(...cells.map(c => c.count), 1);
+  cells.forEach(cell => {
+    cell.intensity = Math.round((cell.count / maxCount) * 4);
+  });
+  
+  return cells;
+}
 ```
 
-### Markdown Support
+### Graph Focus Filter
 
-Using simple regex-based parsing for:
-- **Bold** (`**text**`)
-- *Italic* (`*text*`)
-- Headers (`# ## ###`)
-- Lists (`- item` or `1. item`)
-- Code blocks (triple backticks)
-- Links (`[text](url)`)
-- Note links (`[[Note Title]]` - internal linking)
+```typescript
+// In Graph.tsx
+
+const [focusedProjectId, setFocusedProjectId] = useState<string | null>(null);
+
+const filteredGraphData = useMemo(() => {
+  if (!focusedProjectId) return graphData; // Show all
+  
+  const project = projects.find(p => p.id === focusedProjectId);
+  if (!project) return graphData;
+  
+  const filteredNotes = notes.filter(n => n.projectIds.includes(focusedProjectId));
+  const filteredBookmarks = bookmarks.filter(b => b.projectIds.includes(focusedProjectId));
+  
+  // Rebuild nodes array with only connected items
+  // Recalculate positions for smaller set
+}, [focusedProjectId, graphData, projects, notes, bookmarks]);
+```
 
 ---
 
 ## Summary
 
-This plan transforms myOS from a visually interesting demo into a functional personal command center. The features build on each other:
+These three features push myOS deeper into the cyberpunk terminal aesthetic while adding real functionality:
 
-1. **Project Detail View** gives context to your work
-2. **Quick Capture** reduces friction to near-zero
-3. **Universal Search** makes finding things instant
-4. **Markdown Editor** makes notes worth writing
-5. **Data Export** protects your investment
-6. **Smart Suggestions** surfaces connections you might miss
+1. **Activity Heatmap** - See your productivity patterns at a glance
+2. **Neural Link Graph** - Focus on one project's connections with visual flair
+3. **Terminal Commands** - Power-user shortcuts with satisfying feedback
 
-All without requiring any external AI service.
+All three build on existing data structures and enhance the "command center" feel without requiring external services.
 
