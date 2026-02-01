@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { useNotes, useProjects } from '@/hooks/useStore';
 import { ArrowLeft, Save } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { MarkdownEditor } from '@/components/MarkdownEditor';
+import { RelatedSuggestions } from '@/components/RelatedSuggestions';
 
 export default function NewNote() {
   const navigate = useNavigate();
@@ -37,8 +38,14 @@ export default function NewNote() {
     );
   };
 
+  const handleAddSuggestedProject = (projectId: string) => {
+    if (!selectedProjects.includes(projectId)) {
+      setSelectedProjects(prev => [...prev, projectId]);
+    }
+  };
+
   return (
-    <div className="p-8 max-w-4xl mx-auto">
+    <div className="p-8 max-w-5xl mx-auto">
       {/* Header */}
       <header className="mb-8">
         <button
@@ -53,74 +60,84 @@ export default function NewNote() {
         </h1>
       </header>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="bg-card border border-border p-6 space-y-6">
-          {/* Title */}
-          <div className="space-y-2">
-            <Input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Note title..."
-              className="font-mono bg-surface border-border text-xl font-bold"
-              autoFocus
+      <form onSubmit={handleSubmit} className="grid grid-cols-3 gap-6">
+        <div className="col-span-2 space-y-6">
+          <div className="bg-card border border-border p-6 space-y-6">
+            {/* Title */}
+            <div className="space-y-2">
+              <Input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Note title..."
+                className="font-mono bg-surface border-border text-xl font-bold"
+                autoFocus
+              />
+            </div>
+
+            {/* Content */}
+            <MarkdownEditor
+              value={content}
+              onChange={setContent}
+              minHeight="350px"
             />
           </div>
 
-          {/* Content */}
-          <div className="space-y-2">
-            <Textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="Start writing... (Markdown supported)"
-              className="font-mono bg-surface border-border min-h-[400px] resize-none"
-            />
+          {/* Submit */}
+          <div className="flex gap-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => navigate('/notes')}
+              className="font-mono"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              className="font-mono flex items-center gap-2"
+            >
+              <Save className="h-4 w-4" />
+              Save Note
+            </Button>
           </div>
         </div>
 
-        {/* Link to Projects */}
-        {projects.length > 0 && (
-          <div className="bg-card border border-border p-6">
-            <label className="text-sm font-mono text-muted-foreground uppercase tracking-wider block mb-4">
-              Link to Projects
-            </label>
-            <div className="space-y-2">
-              {projects.map((project) => (
-                <label
-                  key={project.id}
-                  className="flex items-center gap-3 p-2 hover:bg-surface transition-colors cursor-pointer"
-                >
-                  <Checkbox
-                    checked={selectedProjects.includes(project.id)}
-                    onCheckedChange={() => toggleProject(project.id)}
-                  />
-                  <div
-                    className="w-3 h-3"
-                    style={{ backgroundColor: project.color }}
-                  />
-                  <span className="font-mono text-sm">{project.name}</span>
-                </label>
-              ))}
+        {/* Sidebar */}
+        <div className="space-y-4">
+          {/* Link to Projects */}
+          {projects.length > 0 && (
+            <div className="bg-card border border-border p-4">
+              <label className="text-sm font-mono text-muted-foreground uppercase tracking-wider block mb-3">
+                Link to Projects
+              </label>
+              <div className="space-y-2">
+                {projects.map((project) => (
+                  <label
+                    key={project.id}
+                    className="flex items-center gap-3 p-2 hover:bg-surface transition-colors cursor-pointer"
+                  >
+                    <Checkbox
+                      checked={selectedProjects.includes(project.id)}
+                      onCheckedChange={() => toggleProject(project.id)}
+                    />
+                    <div
+                      className="w-3 h-3"
+                      style={{ backgroundColor: project.color }}
+                    />
+                    <span className="font-mono text-sm">{project.name}</span>
+                  </label>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Submit */}
-        <div className="flex gap-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => navigate('/notes')}
-            className="font-mono"
-          >
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            className="font-mono flex items-center gap-2"
-          >
-            <Save className="h-4 w-4" />
-            Save Note
-          </Button>
+          {/* Smart Suggestions */}
+          <RelatedSuggestions
+            text={`${title} ${content}`}
+            projects={projects}
+            selectedProjectIds={selectedProjects}
+            onAddProject={handleAddSuggestedProject}
+          />
         </div>
       </form>
     </div>

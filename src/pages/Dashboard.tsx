@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { QuickCapture } from '@/components/QuickCapture';
 
 export default function Dashboard() {
   const { projects } = useProjects();
@@ -135,33 +136,8 @@ export default function Dashboard() {
       </div>
 
       {/* Quick Capture */}
-      <div className="mt-6 bg-card p-6 relative corner-brackets">
-        <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-primary" />
-        <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-primary" />
-        <h2 className="text-lg font-bold font-display mb-4 flex items-center gap-2">
-          <Plus className="h-5 w-5 text-terminal-green" />
-          <span className="uppercase tracking-wider">Quick_Capture</span>
-        </h2>
-        <div className="grid grid-cols-3 gap-4">
-          <QuickAction 
-            icon={FolderKanban} 
-            label="New Project" 
-            path="/projects/new"
-            color="primary"
-          />
-          <QuickAction 
-            icon={FileText} 
-            label="New Note" 
-            path="/notes/new"
-            color="glow-secondary"
-          />
-          <QuickAction 
-            icon={Bookmark} 
-            label="Add Bookmark" 
-            path="/bookmarks/new"
-            color="terminal-green"
-          />
-        </div>
+      <div className="mt-6">
+        <QuickCapture />
       </div>
     </div>
   );
