@@ -11,6 +11,7 @@ import {
   Plus,
   Calendar,
   ExternalLink,
+  Network,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -149,6 +150,15 @@ export default function ProjectDetail() {
 
           {/* Actions */}
           <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate(`/graph?focus=${id}`)}
+              className="font-mono"
+            >
+              <Network className="h-4 w-4 mr-2" />
+              Graph
+            </Button>
             <Button
               variant="outline"
               size="sm"

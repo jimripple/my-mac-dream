@@ -13,6 +13,7 @@ import {
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { QuickCapture } from '@/components/QuickCapture';
+import { ActivityHeatmap } from '@/components/ActivityHeatmap';
 
 export default function Dashboard() {
   const { projects } = useProjects();
@@ -133,6 +134,11 @@ export default function Dashboard() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Activity Heatmap */}
+      <div className="mt-6">
+        <ActivityHeatmap />
       </div>
 
       {/* Quick Capture */}
