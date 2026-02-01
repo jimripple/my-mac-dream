@@ -129,6 +129,111 @@
                 0 0 15px hsl(var(--glow) / 0.2);
   }
 
+  /* Corner bracket borders */
+  .corner-brackets {
+    position: relative;
+    border: none !important;
+  }
+
+  .corner-brackets::before,
+  .corner-brackets::after {
+    content: '';
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-color: hsl(var(--primary));
+    border-style: solid;
+    border-width: 0;
+  }
+
+  .corner-brackets::before {
+    top: 0;
+    left: 0;
+    border-top-width: 2px;
+    border-left-width: 2px;
+  }
+
+  .corner-brackets::after {
+    bottom: 0;
+    right: 0;
+    border-bottom-width: 2px;
+    border-right-width: 2px;
+  }
+
+  /* Additional corners via pseudo-elements on child */
+  .corner-brackets-full {
+    position: relative;
+  }
+
+  .corner-brackets-full::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 12px;
+    height: 12px;
+    border-top: 2px solid hsl(var(--primary));
+    border-right: 2px solid hsl(var(--primary));
+  }
+
+  .corner-brackets-full::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 12px;
+    height: 12px;
+    border-bottom: 2px solid hsl(var(--primary));
+    border-left: 2px solid hsl(var(--primary));
+  }
+
+  /* CRT / Old screen effects */
+  .crt-screen {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .crt-screen::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      hsl(var(--foreground) / 0.015) 2px,
+      hsl(var(--foreground) / 0.015) 4px
+    );
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  .crt-screen::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      ellipse at center,
+      transparent 0%,
+      hsl(var(--background) / 0.3) 90%,
+      hsl(var(--background) / 0.6) 100%
+    );
+    pointer-events: none;
+    z-index: 99;
+  }
+
+  /* Subtle screen flicker */
+  @keyframes flicker {
+    0%, 100% { opacity: 1; }
+    92% { opacity: 1; }
+    93% { opacity: 0.95; }
+    94% { opacity: 1; }
+  }
+
+  .screen-flicker {
+    animation: flicker 4s infinite;
+  }
+
   /* Scan line effect */
   .scanlines::before {
     content: '';
@@ -180,6 +285,17 @@
   .viz-primary { color: hsl(var(--glow)); }
   .viz-secondary { color: hsl(var(--glow-secondary)); }
   .viz-tertiary { color: hsl(var(--terminal-green)); }
+
+  /* Noise texture overlay */
+  .noise-overlay::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.02;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 98;
+  }
 }
 
 /* Custom scrollbar */

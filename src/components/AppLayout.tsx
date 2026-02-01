@@ -6,11 +6,11 @@ export function AppLayout() {
   const { open, setOpen } = useCommandBar();
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden">
+    <div className="flex h-screen bg-background overflow-hidden crt-screen screen-flicker">
       <Sidebar onCommandOpen={() => setOpen(true)} />
       
       <main className="flex-1 overflow-auto">
-        <div className="relative min-h-full">
+        <div className="relative min-h-full noise-overlay">
           {/* Subtle grid background */}
           <div className="absolute inset-0 grid-bg opacity-50 pointer-events-none" />
           
