@@ -75,11 +75,13 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-3 gap-6">
         {/* Active Projects */}
-        <div className="col-span-2 bg-card border border-border p-6">
+        <div className="col-span-2 bg-card p-6 relative corner-brackets">
+          <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-primary" />
+          <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-primary" />
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-bold font-display flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-primary" />
-              Active Projects
+              <span className="uppercase tracking-wider">Active_Projects</span>
             </h2>
             <Link 
               to="/projects" 
@@ -108,11 +110,13 @@ export default function Dashboard() {
         </div>
 
         {/* Activity Feed */}
-        <div className="bg-card border border-border p-6">
+        <div className="bg-card p-6 relative corner-brackets">
+          <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-primary" />
+          <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-primary" />
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-bold font-display flex items-center gap-2">
               <Activity className="h-5 w-5 text-primary" />
-              Recent Activity
+              <span className="uppercase tracking-wider">Activity_Log</span>
             </h2>
           </div>
 
@@ -131,10 +135,12 @@ export default function Dashboard() {
       </div>
 
       {/* Quick Capture */}
-      <div className="mt-6 bg-card border border-border p-6">
+      <div className="mt-6 bg-card p-6 relative corner-brackets">
+        <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-primary" />
+        <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-primary" />
         <h2 className="text-lg font-bold font-display mb-4 flex items-center gap-2">
           <Plus className="h-5 w-5 text-terminal-green" />
-          Quick Capture
+          <span className="uppercase tracking-wider">Quick_Capture</span>
         </h2>
         <div className="grid grid-cols-3 gap-4">
           <QuickAction 
@@ -179,14 +185,16 @@ function StatCard({
   progress?: number;
 }) {
   return (
-    <div className="bg-card border border-border p-4 relative overflow-hidden group hover:border-primary/50 transition-colors">
+    <div className="bg-card p-4 relative overflow-hidden group hover:bg-card/80 transition-colors corner-brackets">
+      <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-primary" />
+      <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-primary" />
       <div className="flex items-start justify-between">
         <div>
           <p className="text-xs text-muted-foreground font-mono uppercase tracking-wider mb-1">
             {label}
           </p>
           <p className="text-2xl font-bold font-display">
-            <span className="text-primary">{value}</span>
+            <span className="text-primary glow-text">{value}</span>
             {total !== undefined && (
               <span className="text-muted-foreground text-lg">/{total}</span>
             )}
