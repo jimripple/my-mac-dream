@@ -1,15 +1,16 @@
 import { useSearchParams } from 'react-router-dom';
 import { useProjects, useTasks, useActivities, useStats } from '@/hooks/useStore';
 import { formatDistanceToNow } from 'date-fns';
-import { 
-  FolderKanban, 
-  FileText, 
-  Bookmark, 
+import {
+  FolderKanban,
+  FileText,
+  Bookmark,
   CheckSquare,
   Activity,
   TrendingUp,
   Plus,
   ArrowRight,
+  PenLine,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -69,6 +70,18 @@ export default function Dashboard() {
           <span className="text-primary glow-text">Mission</span> Control
         </h1>
       </header>
+
+      {/* Daily Note shortcut */}
+      <Link
+        to="/notes/daily"
+        className="flex-shrink-0 flex items-center gap-3 px-4 py-2.5 mb-4 bg-card border border-border hover:border-primary/50 transition-all group"
+      >
+        <PenLine className="h-4 w-4 text-primary" />
+        <span className="font-mono text-sm text-muted-foreground group-hover:text-foreground transition-colors">
+          Open today's note
+        </span>
+        <ArrowRight className="h-3 w-3 ml-auto text-muted-foreground group-hover:text-primary transition-colors" />
+      </Link>
 
       {/* Stats Grid - compact */}
       <div className="flex-shrink-0 grid grid-cols-4 gap-3 mb-4">

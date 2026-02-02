@@ -23,6 +23,7 @@ import {
   Terminal,
   HelpCircle,
   Activity,
+  PenLine,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -543,6 +544,14 @@ export function CommandBar({ open, onOpenChange }: CommandBarProps) {
 
             <CommandGroup heading="Quick Actions" className="font-mono">
               <CommandItem
+                onSelect={() => runCommand(() => navigate('/notes/daily'))}
+                className="gap-3"
+              >
+                <PenLine className="h-4 w-4 text-primary" />
+                <span>Today's Note</span>
+                <span className="ml-auto text-xs text-muted-foreground">Daily journal</span>
+              </CommandItem>
+              <CommandItem
                 onSelect={() => runCommand(() => navigate('/projects/new'))}
                 className="gap-3"
               >
@@ -605,6 +614,24 @@ export function useCommandBar() {
 
     document.addEventListener('keydown', down);
     return () => document.removeEventListener('keydown', down);
+  }, []);
+
+  // Listen for Tauri global shortcut event (Cmd+Shift+K from anywhere on the system)
+  useEffect(() => {
+    if (!('__TAURI_INTERNALS__' in window)) return;
+
+    let unlisten: (() => void) | undefined;
+    import('@tauri-apps/api/event').then(({ listen }) => {
+      listen('open-command-bar', () => {
+        setOpen(true);
+      }).then((fn) => {
+        unlisten = fn;
+      });
+    });
+
+    return () => {
+      unlisten?.();
+    };
   }, []);
 
   return { open, setOpen };

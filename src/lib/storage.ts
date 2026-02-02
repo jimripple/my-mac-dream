@@ -1,4 +1,5 @@
-// Local storage utilities for myOS
+// Storage layer for myOS
+// Uses Tauri Store plugin when running in Tauri, falls back to localStorage in browser
 import { Project, Note, Bookmark, Task, Activity } from '@/types';
 
 const STORAGE_KEYS = {
@@ -9,18 +10,81 @@ const STORAGE_KEYS = {
   activities: 'myos_activities',
 } as const;
 
-// Generic storage helpers
-function getFromStorage<T>(key: string, fallback: T[]): T[] {
-  try {
-    const stored = localStorage.getItem(key);
-    return stored ? JSON.parse(stored) : fallback;
-  } catch {
-    return fallback;
+// In-memory cache — all reads are synchronous from here
+const cache: Record<string, unknown[]> = {
+  [STORAGE_KEYS.projects]: [],
+  [STORAGE_KEYS.notes]: [],
+  [STORAGE_KEYS.bookmarks]: [],
+  [STORAGE_KEYS.tasks]: [],
+  [STORAGE_KEYS.activities]: [],
+};
+
+// Detect if running inside Tauri
+function isTauri(): boolean {
+  return typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
+}
+
+// Tauri Store instance (lazy-loaded)
+let tauriStore: {
+  get: (key: string) => Promise<unknown>;
+  set: (key: string, value: unknown) => Promise<void>;
+  save: () => Promise<void>;
+} | null = null;
+
+async function getTauriStore() {
+  if (tauriStore) return tauriStore;
+  const { LazyStore } = await import('@tauri-apps/plugin-store');
+  tauriStore = new LazyStore('myos-data.json');
+  return tauriStore;
+}
+
+// Persist a key to the appropriate backend
+function persist(key: string, data: unknown[]): void {
+  if (isTauri()) {
+    // Fire-and-forget async write to Tauri Store
+    getTauriStore().then(async (store) => {
+      await store.set(key, data);
+      await store.save();
+    }).catch(console.error);
+  } else {
+    localStorage.setItem(key, JSON.stringify(data));
   }
 }
 
-function setToStorage<T>(key: string, data: T[]): void {
-  localStorage.setItem(key, JSON.stringify(data));
+// Initialize storage — loads data into memory cache
+// Call this once at app startup before rendering
+export async function initStorage(): Promise<void> {
+  if (isTauri()) {
+    try {
+      const store = await getTauriStore();
+      for (const key of Object.values(STORAGE_KEYS)) {
+        const data = await store.get(key);
+        cache[key] = Array.isArray(data) ? data : [];
+      }
+    } catch (err) {
+      console.error('Failed to load from Tauri Store, falling back to defaults:', err);
+    }
+  } else {
+    // Load from localStorage
+    for (const key of Object.values(STORAGE_KEYS)) {
+      try {
+        const stored = localStorage.getItem(key);
+        cache[key] = stored ? JSON.parse(stored) : [];
+      } catch {
+        cache[key] = [];
+      }
+    }
+  }
+}
+
+// Generic cache helpers
+function getFromCache<T>(key: string): T[] {
+  return (cache[key] as T[]) || [];
+}
+
+function setToCache<T>(key: string, data: T[]): void {
+  cache[key] = data;
+  persist(key, data);
 }
 
 // Generate unique ID
@@ -30,7 +94,7 @@ export function generateId(): string {
 
 // Projects
 export function getProjects(): Project[] {
-  return getFromStorage<Project>(STORAGE_KEYS.projects, []);
+  return getFromCache<Project>(STORAGE_KEYS.projects);
 }
 
 export function saveProject(project: Project): void {
@@ -41,17 +105,17 @@ export function saveProject(project: Project): void {
   } else {
     projects.push(project);
   }
-  setToStorage(STORAGE_KEYS.projects, projects);
+  setToCache(STORAGE_KEYS.projects, projects);
 }
 
 export function deleteProject(id: string): void {
   const projects = getProjects().filter(p => p.id !== id);
-  setToStorage(STORAGE_KEYS.projects, projects);
+  setToCache(STORAGE_KEYS.projects, projects);
 }
 
 // Notes
 export function getNotes(): Note[] {
-  return getFromStorage<Note>(STORAGE_KEYS.notes, []);
+  return getFromCache<Note>(STORAGE_KEYS.notes);
 }
 
 export function saveNote(note: Note): void {
@@ -62,17 +126,17 @@ export function saveNote(note: Note): void {
   } else {
     notes.push(note);
   }
-  setToStorage(STORAGE_KEYS.notes, notes);
+  setToCache(STORAGE_KEYS.notes, notes);
 }
 
 export function deleteNote(id: string): void {
   const notes = getNotes().filter(n => n.id !== id);
-  setToStorage(STORAGE_KEYS.notes, notes);
+  setToCache(STORAGE_KEYS.notes, notes);
 }
 
 // Bookmarks
 export function getBookmarks(): Bookmark[] {
-  return getFromStorage<Bookmark>(STORAGE_KEYS.bookmarks, []);
+  return getFromCache<Bookmark>(STORAGE_KEYS.bookmarks);
 }
 
 export function saveBookmark(bookmark: Bookmark): void {
@@ -83,17 +147,17 @@ export function saveBookmark(bookmark: Bookmark): void {
   } else {
     bookmarks.push(bookmark);
   }
-  setToStorage(STORAGE_KEYS.bookmarks, bookmarks);
+  setToCache(STORAGE_KEYS.bookmarks, bookmarks);
 }
 
 export function deleteBookmark(id: string): void {
   const bookmarks = getBookmarks().filter(b => b.id !== id);
-  setToStorage(STORAGE_KEYS.bookmarks, bookmarks);
+  setToCache(STORAGE_KEYS.bookmarks, bookmarks);
 }
 
 // Tasks
 export function getTasks(): Task[] {
-  return getFromStorage<Task>(STORAGE_KEYS.tasks, []);
+  return getFromCache<Task>(STORAGE_KEYS.tasks);
 }
 
 export function saveTask(task: Task): void {
@@ -104,17 +168,17 @@ export function saveTask(task: Task): void {
   } else {
     tasks.push(task);
   }
-  setToStorage(STORAGE_KEYS.tasks, tasks);
+  setToCache(STORAGE_KEYS.tasks, tasks);
 }
 
 export function deleteTask(id: string): void {
   const tasks = getTasks().filter(t => t.id !== id);
-  setToStorage(STORAGE_KEYS.tasks, tasks);
+  setToCache(STORAGE_KEYS.tasks, tasks);
 }
 
 // Activities
 export function getActivities(): Activity[] {
-  return getFromStorage<Activity>(STORAGE_KEYS.activities, []);
+  return getFromCache<Activity>(STORAGE_KEYS.activities);
 }
 
 export function addActivity(activity: Omit<Activity, 'id' | 'timestamp'>): void {
@@ -126,7 +190,7 @@ export function addActivity(activity: Omit<Activity, 'id' | 'timestamp'>): void 
   };
   // Keep only last 50 activities
   const updated = [newActivity, ...activities].slice(0, 50);
-  setToStorage(STORAGE_KEYS.activities, updated);
+  setToCache(STORAGE_KEYS.activities, updated);
 }
 
 // Export all data
@@ -146,11 +210,11 @@ export function exportData(): string {
 export function importData(jsonString: string): boolean {
   try {
     const data = JSON.parse(jsonString);
-    if (data.projects) setToStorage(STORAGE_KEYS.projects, data.projects);
-    if (data.notes) setToStorage(STORAGE_KEYS.notes, data.notes);
-    if (data.bookmarks) setToStorage(STORAGE_KEYS.bookmarks, data.bookmarks);
-    if (data.tasks) setToStorage(STORAGE_KEYS.tasks, data.tasks);
-    if (data.activities) setToStorage(STORAGE_KEYS.activities, data.activities);
+    if (data.projects) setToCache(STORAGE_KEYS.projects, data.projects);
+    if (data.notes) setToCache(STORAGE_KEYS.notes, data.notes);
+    if (data.bookmarks) setToCache(STORAGE_KEYS.bookmarks, data.bookmarks);
+    if (data.tasks) setToCache(STORAGE_KEYS.tasks, data.tasks);
+    if (data.activities) setToCache(STORAGE_KEYS.activities, data.activities);
     return true;
   } catch {
     return false;

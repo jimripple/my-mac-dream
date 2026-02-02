@@ -17,6 +17,7 @@ export interface Note {
   content: string;
   projectIds: string[];
   linkedNoteIds: string[];
+  dailyDate?: string; // YYYY-MM-DD — set for daily journal notes
   createdAt: string;
   updatedAt: string;
 }

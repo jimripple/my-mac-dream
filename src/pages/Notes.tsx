@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useNotes, useProjects } from '@/hooks/useStore';
-import { Plus, FileText, Search, Calendar } from 'lucide-react';
+import { Plus, FileText, Search, Calendar, PenLine } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -40,13 +40,22 @@ export default function Notes() {
           <h1 className="text-3xl font-bold font-display">
             <span className="text-primary glow-text">Notes</span> Archive
           </h1>
-          <Link
-            to="/notes/new"
-            className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground font-mono text-sm hover:bg-primary/90 transition-colors"
-          >
-            <Plus className="h-4 w-4" />
-            New Note
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              to="/notes/daily"
+              className="flex items-center gap-2 px-4 py-2 border border-primary/50 text-primary font-mono text-sm hover:bg-primary/10 transition-colors"
+            >
+              <PenLine className="h-4 w-4" />
+              Today's Note
+            </Link>
+            <Link
+              to="/notes/new"
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground font-mono text-sm hover:bg-primary/90 transition-colors"
+            >
+              <Plus className="h-4 w-4" />
+              New Note
+            </Link>
+          </div>
         </div>
       </header>
 
