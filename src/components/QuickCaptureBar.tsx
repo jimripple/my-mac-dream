@@ -1,13 +1,15 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useProjects, useNotes, useBookmarks, useTasks } from '@/hooks/useStore';
-import { 
-  Plus, 
-  FileText, 
-  Bookmark, 
-  CheckSquare, 
+import {
+  Plus,
+  FileText,
+  Bookmark,
+  CheckSquare,
   Save,
   X,
   Link as LinkIcon,
+  Brain,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -28,6 +30,7 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
 export function QuickCaptureBar({ className }: { className?: string }) {
+  const navigate = useNavigate();
   const { projects } = useProjects();
   const { createNote } = useNotes();
   const { createBookmark } = useBookmarks();
@@ -348,6 +351,17 @@ export function QuickCaptureBar({ className }: { className?: string }) {
           </div>
         </PopoverContent>
       </Popover>
+
+      {/* Uplink quick access */}
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-8 font-mono text-xs gap-1.5"
+        onClick={() => navigate('/uplink')}
+      >
+        <Brain className="h-3.5 w-3.5 text-primary" />
+        Uplink
+      </Button>
 
       {/* Keyboard shortcut hint */}
       <div className="ml-auto text-[10px] font-mono text-muted-foreground/50 hidden lg:block">

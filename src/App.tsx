@@ -18,6 +18,7 @@ const Bookmarks = lazy(() => import("./pages/Bookmarks"));
 const NewBookmark = lazy(() => import("./pages/NewBookmark"));
 const Tasks = lazy(() => import("./pages/Tasks"));
 const Graph = lazy(() => import("./pages/Graph"));
+const Uplink = lazy(() => import("./pages/Uplink"));
 const Settings = lazy(() => import("./pages/Settings"));
 const DailyNote = lazy(() => import("./pages/DailyNote"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -46,6 +47,7 @@ const App = () => (
               <Route path="/bookmarks/new" element={<NewBookmark />} />
               <Route path="/tasks" element={<Tasks />} />
               <Route path="/graph" element={<Graph />} />
+              <Route path="/uplink" element={<Uplink />} />
               <Route path="/settings" element={<Settings />} />
             </Route>
             <Route path="*" element={<NotFound />} />

@@ -7,6 +7,7 @@ import {
   Bookmark,
   CheckSquare,
   Network,
+  Brain,
   Command,
   Settings,
 } from 'lucide-react';
@@ -22,6 +23,7 @@ const navItems = [
   { path: '/bookmarks', icon: Bookmark, label: 'Bookmarks', description: 'Library', shortcut: '4' },
   { path: '/tasks', icon: CheckSquare, label: 'Tasks', description: 'Tracker', shortcut: '5' },
   { path: '/graph', icon: Network, label: 'Graph', description: 'Big Picture', shortcut: '6' },
+  { path: '/uplink', icon: Brain, label: 'Uplink', description: 'Neural Link', shortcut: '7' },
 ];
 
 export function Sidebar({ onCommandOpen }: SidebarProps) {

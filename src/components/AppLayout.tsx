@@ -10,6 +10,7 @@ const keyboardRoutes: Record<string, string> = {
   '4': '/bookmarks',
   '5': '/tasks',
   '6': '/graph',
+  '7': '/uplink',
   ',': '/settings',
 };
 
