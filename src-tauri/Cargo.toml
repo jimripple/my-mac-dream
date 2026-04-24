@@ -1,7 +1,7 @@
 [package]
 name = "myos"
 version = "0.1.0"
-description = "Personal productivity command center for macOS"
+description = "Church safety OSINT command center prototype for macOS"
 authors = ["James McKinney"]
 license = "MIT"
 edition = "2021"

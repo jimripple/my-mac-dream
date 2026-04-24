@@ -31,28 +31,26 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Suspense fallback={null}>
-          <Routes>
-            <Route element={<AppLayout />}>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/projects" element={<Projects />} />
-              <Route path="/projects/new" element={<NewProject />} />
-              <Route path="/projects/:id" element={<ProjectDetail />} />
-              <Route path="/notes" element={<Notes />} />
-              <Route path="/notes/daily" element={<DailyNote />} />
-              <Route path="/notes/daily/:date" element={<DailyNote />} />
-              <Route path="/notes/new" element={<NewNote />} />
-              <Route path="/notes/:id" element={<NoteDetail />} />
-              <Route path="/bookmarks" element={<Bookmarks />} />
-              <Route path="/bookmarks/new" element={<NewBookmark />} />
-              <Route path="/tasks" element={<Tasks />} />
-              <Route path="/graph" element={<Graph />} />
-              <Route path="/uplink" element={<Uplink />} />
-              <Route path="/settings" element={<Settings />} />
-            </Route>
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Suspense>
+        <Routes>
+          <Route element={<AppLayout />}>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/projects" element={<Projects />} />
+            <Route path="/projects/new" element={<NewProject />} />
+            <Route path="/projects/:id" element={<ProjectDetail />} />
+            <Route path="/notes" element={<Notes />} />
+            <Route path="/notes/daily" element={<DailyNote />} />
+            <Route path="/notes/daily/:date" element={<DailyNote />} />
+            <Route path="/notes/new" element={<NewNote />} />
+            <Route path="/notes/:id" element={<NoteDetail />} />
+            <Route path="/bookmarks" element={<Bookmarks />} />
+            <Route path="/bookmarks/new" element={<NewBookmark />} />
+            <Route path="/tasks" element={<Tasks />} />
+            <Route path="/graph" element={<Graph />} />
+            <Route path="/uplink" element={<Uplink />} />
+            <Route path="/settings" element={<Settings />} />
+          </Route>
+          <Route path="*" element={<Suspense fallback={null}><NotFound /></Suspense>} />
+        </Routes>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

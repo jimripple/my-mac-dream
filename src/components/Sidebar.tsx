@@ -1,14 +1,15 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import {
-  LayoutDashboard,
-  FolderKanban,
-  FileText,
+  Activity,
   Bookmark,
   CheckSquare,
-  Network,
-  Brain,
   Command,
+  FileText,
+  FolderKanban,
+  LayoutDashboard,
+  Network,
+  Radio,
   Settings,
 } from 'lucide-react';
 
@@ -17,99 +18,85 @@ interface SidebarProps {
 }
 
 const navItems = [
-  { path: '/', icon: LayoutDashboard, label: 'Dashboard', description: 'Mission Control', shortcut: '1' },
-  { path: '/projects', icon: FolderKanban, label: 'Projects', description: 'Hubs', shortcut: '2' },
-  { path: '/notes', icon: FileText, label: 'Notes', description: 'Knowledge', shortcut: '3' },
-  { path: '/bookmarks', icon: Bookmark, label: 'Bookmarks', description: 'Library', shortcut: '4' },
-  { path: '/tasks', icon: CheckSquare, label: 'Tasks', description: 'Tracker', shortcut: '5' },
-  { path: '/graph', icon: Network, label: 'Graph', description: 'Big Picture', shortcut: '6' },
-  { path: '/uplink', icon: Brain, label: 'Uplink', description: 'Neural Link', shortcut: '7' },
+  { path: '/', icon: LayoutDashboard, label: 'Intel', description: 'Triage', shortcut: '1' },
+  { path: '/projects', icon: FolderKanban, label: 'Cases', description: 'Projects', shortcut: '2' },
+  { path: '/notes', icon: FileText, label: 'Notes', description: 'Logs', shortcut: '3' },
+  { path: '/bookmarks', icon: Bookmark, label: 'Sources', description: 'Library', shortcut: '4' },
+  { path: '/tasks', icon: CheckSquare, label: 'Actions', description: 'Tasks', shortcut: '5' },
+  { path: '/graph', icon: Network, label: 'Graph', description: 'Links', shortcut: '6' },
+  { path: '/uplink', icon: Radio, label: 'Uplink', description: 'Terminal', shortcut: '7' },
 ];
 
 export function Sidebar({ onCommandOpen }: SidebarProps) {
   const location = useLocation();
 
   return (
-    <aside className="w-64 h-screen bg-sidebar border-r border-sidebar-border flex flex-col">
-      {/* Logo */}
-      <div className="p-6 border-b border-sidebar-border">
-        <h1 className="text-xl font-bold font-display text-foreground tracking-tight">
-          <span className="text-primary glow-text">my</span>OS
-        </h1>
-        <p className="text-xs text-muted-foreground mt-1 font-mono">
-          Personal Command Center
-        </p>
+    <aside className="hidden h-screen w-[224px] shrink-0 border-r border-border bg-[var(--black)] lg:flex lg:flex-col">
+      <div className="px-5 py-6 border-b border-border">
+        <div className="font-display text-[34px] leading-none tracking-[-0.03em] text-[var(--text-display)]">
+          myOS
+        </div>
+        <div className="mt-2 nd-label">Church Safety OSINT</div>
       </div>
 
-      {/* Command Bar Trigger */}
-      <button
-        onClick={onCommandOpen}
-        className="mx-4 mt-4 flex items-center gap-2 px-3 py-2 bg-sidebar-accent border border-sidebar-border text-sm text-muted-foreground hover:text-foreground hover:border-primary/50 transition-colors font-mono"
-      >
-        <Command className="h-4 w-4" />
-        <span>Quick Search</span>
-        <kbd className="ml-auto text-xs bg-background px-1.5 py-0.5 border border-border">
-          ⌘K
-        </kbd>
-      </button>
+      <div className="p-3 border-b border-border">
+        <button
+          onClick={onCommandOpen}
+          className="group flex h-11 w-full items-center gap-3 rounded-full border border-[var(--border-visible)] px-4 text-left font-mono text-[12px] uppercase tracking-[0.06em] text-[var(--text-secondary)] transition-colors hover:border-[var(--text-display)] hover:text-[var(--text-display)]"
+        >
+          <Command className="h-4 w-4" />
+          <span>Command</span>
+          <kbd className="ml-auto text-[10px] text-[var(--text-disabled)] group-hover:text-[var(--text-secondary)]">
+            CMD K
+          </kbd>
+        </button>
+      </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-1">
+      <nav className="flex-1 space-y-1 p-3">
         {navItems.map((item) => {
-          const isActive = location.pathname === item.path || 
+          const isActive = location.pathname === item.path ||
             (item.path !== '/' && location.pathname.startsWith(item.path));
-          
+
           return (
             <NavLink
               key={item.path}
               to={item.path}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 text-sm font-mono transition-all group",
+                'group grid grid-cols-[20px_1fr_auto] items-center gap-3 rounded-lg px-3 py-3 transition-colors',
                 isActive
-                  ? "bg-primary/10 text-primary border-l-2 border-primary glow-border"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-foreground border-l-2 border-transparent"
+                  ? 'bg-[var(--surface)] text-[var(--text-display)]'
+                  : 'text-[var(--text-secondary)] hover:bg-[var(--surface)] hover:text-[var(--text-primary)]'
               )}
             >
-              <item.icon className={cn(
-                "h-4 w-4 transition-colors",
-                isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
-              )} />
-              <div className="flex flex-col flex-1">
-                <span>{item.label}</span>
-                <span className={cn(
-                  "text-[10px] uppercase tracking-wider",
-                  isActive ? "text-primary/70" : "text-muted-foreground"
-                )}>
+              <item.icon className="h-4 w-4" strokeWidth={1.5} />
+              <span>
+                <span className="block font-mono text-[12px] uppercase tracking-[0.08em]">
+                  {item.label}
+                </span>
+                <span className="block font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
                   {item.description}
                 </span>
-              </div>
-              <kbd className={cn(
-                "text-[10px] font-mono px-1.5 py-0.5 border opacity-0 group-hover:opacity-100 transition-opacity",
-                isActive
-                  ? "border-primary/30 text-primary/60"
-                  : "border-border text-muted-foreground"
-              )}>
-                ⌘{item.shortcut}
-              </kbd>
+              </span>
+              <span className="font-mono text-[10px] text-[var(--text-disabled)] opacity-0 transition-opacity group-hover:opacity-100">
+                {item.shortcut}
+              </span>
             </NavLink>
           );
         })}
       </nav>
 
-      {/* Footer */}
-      <div className="p-4 border-t border-sidebar-border">
+      <div className="border-t border-border p-3">
         <NavLink
           to="/settings"
-          className="flex items-center gap-3 px-3 py-2 text-sm font-mono text-muted-foreground hover:text-foreground transition-colors group"
+          className="group flex items-center gap-3 rounded-lg px-3 py-3 font-mono text-[12px] uppercase tracking-[0.08em] text-[var(--text-secondary)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--text-primary)]"
         >
-          <Settings className="h-4 w-4" />
+          <Settings className="h-4 w-4" strokeWidth={1.5} />
           <span className="flex-1">Settings</span>
-          <kbd className="text-[10px] font-mono px-1.5 py-0.5 border border-border text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
-            ⌘,
-          </kbd>
+          <span className="text-[10px] text-[var(--text-disabled)]">,</span>
         </NavLink>
-        <div className="mt-3 px-3 text-[10px] text-muted-foreground font-mono">
-          <span className="text-primary">●</span> System Online
+        <div className="mt-3 flex items-center gap-2 px-3 font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--text-disabled)]">
+          <Activity className="h-3 w-3" strokeWidth={1.5} />
+          <span>Manual / Sample Data</span>
         </div>
       </div>
     </aside>

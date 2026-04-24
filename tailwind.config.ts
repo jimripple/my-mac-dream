@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import tailwindcssAnimate from "tailwindcss-animate";
 
 export default {
   darkMode: ["class"],
@@ -14,11 +15,12 @@ export default {
     },
     extend: {
       fontFamily: {
-        mono: ["JetBrains Mono", "Space Mono", "monospace"],
-        display: ["Space Mono", "JetBrains Mono", "monospace"],
+        sans: ["Space Grotesk", "system-ui", "sans-serif"],
+        mono: ["Space Mono", "SF Mono", "monospace"],
+        display: ["Doto", "Space Mono", "monospace"],
       },
       colors: {
-        border: "hsl(var(--border))",
+        border: "var(--border)",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
@@ -40,7 +42,7 @@ export default {
           foreground: "hsl(var(--muted-foreground))",
         },
         accent: {
-          DEFAULT: "hsl(var(--accent))",
+          DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--accent-foreground))",
         },
         popover: {
@@ -65,9 +67,9 @@ export default {
         glow: "hsl(var(--glow))",
         "glow-secondary": "hsl(var(--glow-secondary))",
         "terminal-green": "hsl(var(--terminal-green))",
-        warning: "hsl(var(--warning))",
-        surface: "hsl(var(--surface))",
-        "surface-elevated": "hsl(var(--surface-elevated))",
+        warning: "var(--warning)",
+        surface: "var(--surface)",
+        "surface-elevated": "var(--surface-raised)",
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -113,5 +115,5 @@ export default {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [tailwindcssAnimate],
 } satisfies Config;

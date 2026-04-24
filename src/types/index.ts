@@ -54,6 +54,44 @@ export interface Activity {
   timestamp: string;
 }
 
+// OSINT command center prototype types
+export type IntelSeverity = 'low' | 'moderate' | 'elevated' | 'critical';
+export type IntelStatus = 'new' | 'triaging' | 'monitoring' | 'escalated' | 'closed';
+export type SourceType = 'manual' | 'public_alert' | 'local_news' | 'weather' | 'community';
+
+export interface IntelItem {
+  id: string;
+  title: string;
+  summary: string;
+  severity: IntelSeverity;
+  confidence: number;
+  source: string;
+  sourceType: SourceType;
+  location: string;
+  timestamp: string;
+  status: IntelStatus;
+  tags: string[];
+  url?: string;
+}
+
+export interface WatchEntity {
+  id: string;
+  name: string;
+  type: 'person' | 'place' | 'event' | 'organization' | 'keyword';
+  riskLevel: IntelSeverity;
+  lastSeen: string;
+  relatedItemIds: string[];
+}
+
+export interface SourceStatus {
+  id: string;
+  name: string;
+  type: SourceType;
+  health: 'online' | 'degraded' | 'manual' | 'paused';
+  lastSync: string;
+  itemCount: number;
+}
+
 // Graph visualization types
 export interface GraphNode {
   id: string;
